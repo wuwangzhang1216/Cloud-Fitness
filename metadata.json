@@ -1,0 +1,5 @@
+{
+  "name": "Cloud Fitness Game",
+  "description": "An interactive web application that gamifies the gym experience. Users can interact with virtual gym equipment, track their avatar's progress, and receive personalized tips from an AI coach.",
+  "requestFramePermissions": []
+}

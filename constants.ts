@@ -1,11 +1,12 @@
-
-import { PlayerStats, Equipment, EquipmentType } from './types';
+import { PlayerStats, Equipment, EquipmentType, MapLayout, TileType } from './types';
 import { TreadmillIcon, BenchPressIcon, SquatRackIcon, DumbbellIcon, RowingMachineIcon } from './components/icons/WorkoutIcons';
 
 export const INITIAL_PLAYER_STATS: PlayerStats = {
   level: 1,
   xp: 0,
   caloriesBurned: 0,
+  stamina: 100,
+  position: { x: 5, y: 8 },
   muscleGroups: {
     chest: 10,
     back: 8,
@@ -59,3 +60,26 @@ export const EQUIPMENT_LIST: Equipment[] = [
       icon: RowingMachineIcon,
   }
 ];
+
+export const TILE_SIZE = 48; // in pixels
+
+export const GYM_MAP_LAYOUT: MapLayout = [
+    [TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall],
+    [TileType.Wall, TileType.Treadmill, TileType.Floor, TileType.Treadmill, TileType.Floor, TileType.RowingMachine, TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.DumbbellRack, TileType.DumbbellRack, TileType.Wall],
+    [TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Floor, TileType.Floor, TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.BenchPress, TileType.Floor, TileType.BenchPress, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.SquatRack, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Floor, TileType.Wall],
+    [TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall, TileType.Wall],
+];
+
+export const TILE_TO_EQUIPMENT_ID: Partial<Record<TileType, string>> = {
+    [TileType.Treadmill]: 'treadmill',
+    [TileType.BenchPress]: 'benchPress',
+    [TileType.SquatRack]: 'squatRack',
+    [TileType.DumbbellRack]: 'dumbbellRack',
+    [TileType.RowingMachine]: 'rowingMachine',
+};

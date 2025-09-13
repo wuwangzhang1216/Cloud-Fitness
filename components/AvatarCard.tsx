@@ -1,13 +1,14 @@
-
 import React from 'react';
 import { UserIcon, FireIcon, StarIcon } from './icons/StatIcons';
+import { DumbbellIcon } from './icons/WorkoutIcons';
 
 interface AvatarCardProps {
   level: number;
   caloriesBurned: number;
+  stamina: number;
 }
 
-const AvatarCard: React.FC<AvatarCardProps> = ({ level, caloriesBurned }) => {
+const AvatarCard: React.FC<AvatarCardProps> = ({ level, caloriesBurned, stamina }) => {
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-gray-700 text-center">
       <div className="relative w-32 h-32 mx-auto mb-4">
@@ -25,6 +26,18 @@ const AvatarCard: React.FC<AvatarCardProps> = ({ level, caloriesBurned }) => {
           <span>{caloriesBurned.toLocaleString()} kcal</span>
         </div>
       </div>
+       <div className="mt-4">
+            <div className="flex justify-between items-center mb-1">
+                <span className="text-sm font-medium text-gray-300">Stamina</span>
+                <span className="text-sm font-bold text-green-400">{stamina} / 100</span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+                <div 
+                    className="bg-gradient-to-r from-green-500 to-teal-400 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${stamina}%` }}
+                ></div>
+            </div>
+        </div>
     </div>
   );
 };

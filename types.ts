@@ -1,4 +1,3 @@
-
 // FIX: Import React type definitions to resolve 'Cannot find namespace 'React''.
 import type React from 'react';
 
@@ -15,6 +14,8 @@ export interface PlayerStats {
   level: number;
   xp: number;
   caloriesBurned: number;
+  stamina: number;
+  position: { x: number; y: number };
   muscleGroups: MuscleGroups;
   personalRecords: { [equipmentId: string]: number };
 }
@@ -39,3 +40,15 @@ export interface WorkoutResult {
   muscleGains: Partial<MuscleGroups>;
   personalRecord?: number;
 }
+
+export enum TileType {
+    Floor = 'floor',
+    Wall = 'wall',
+    Treadmill = 'treadmill',
+    BenchPress = 'benchPress',
+    SquatRack = 'squatRack',
+    DumbbellRack = 'dumbbellRack',
+    RowingMachine = 'rowingMachine',
+}
+
+export type MapLayout = TileType[][];

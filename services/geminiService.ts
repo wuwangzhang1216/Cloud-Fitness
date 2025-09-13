@@ -3,19 +3,12 @@ import { GoogleGenAI } from "@google/genai";
 import type { PlayerStats } from '../types';
 
 // IMPORTANT: This assumes process.env.API_KEY is set in the build environment.
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  console.warn("API_KEY for Gemini is not set. AI Coach will not function.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+// FIX: Aligned with @google/genai guidelines for API key initialization.
+// The API key is sourced directly from process.env.API_KEY and checks are removed
+// as availability is assumed per guidelines.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getWorkoutTip = async (stats: PlayerStats): Promise<string> => {
-  if (!API_KEY) {
-    return "The AI Coach is currently offline. Please check the API key configuration.";
-  }
-
   const muscleEntries = Object.entries(stats.muscleGroups);
   muscleEntries.sort(([, a], [, b]) => a - b);
   

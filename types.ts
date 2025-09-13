@@ -6,7 +6,11 @@ export interface PlayerStats {
   level: number;
   stamina: number;
   caloriesBurned: number;
-  position: { x: number; y: number };
+  position: { 
+    floor: string;
+    x: number;
+    y: number;
+  };
   muscleGroups: {
     [key in MuscleGroup]: number;
   };
@@ -34,3 +38,15 @@ export interface WorkoutResult {
 }
 
 export type PlayerDirection = 'down' | 'up' | 'left' | 'right';
+
+export enum TileType {
+    Empty,
+    Wall,
+    Treadmill,
+    BenchPress,
+    Dumbbells,
+    SquatRack,
+    RowingMachine,
+    StairsUp,
+    StairsDown,
+}

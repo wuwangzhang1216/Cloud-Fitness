@@ -1,164 +1,133 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { PlayerStats, Equipment } from '../types';
-import { GYM_MAP_LAYOUT, TILE_SIZE, TILE_TO_EQUIPMENT_ID } from '../constants';
-import { TileType } from '../types';
-import AvatarCard from './AvatarCard';
-import StatsPanel from './StatsPanel';
-import AiCoachPanel from './AiCoachPanel';
+import React, { useState, useEffect, useRef } from 'react';
+import type { PlayerStats, Equipment, PlayerDirection } from '../types';
+import Dashboard from './Dashboard';
+import EquipmentCard from './EquipmentCard';
+import PlayerSprite from './PlayerSprite';
 
 interface GymViewProps {
   playerStats: PlayerStats;
   setPlayerStats: React.Dispatch<React.SetStateAction<PlayerStats>>;
   equipmentList: Equipment[];
-  onSelectWorkout: (equipment: Equipment) => void;
+  onSelectWorkout: (equipment: Equipment, origin: {x: number, y: number}) => void;
 }
 
-const keysPressed: { [key: string]: boolean } = {};
+const GymView: React.FC<GymViewProps> = ({
+  playerStats,
+  setPlayerStats,
+  equipmentList,
+  onSelectWorkout,
+}) => {
+  const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
+  const [direction, setDirection] = useState<PlayerDirection>('down');
+  const [isMoving, setIsMoving] = useState(false);
+  const gameAreaRef = useRef<HTMLDivElement>(null);
 
-const GymView: React.FC<GymViewProps> = ({ playerStats, setPlayerStats, equipmentList, onSelectWorkout }) => {
-  const [interactionTarget, setInteractionTarget] = useState<Equipment | null>(null);
-  // FIX: Initialize useRef with null to avoid "Expected 1 arguments, but got 0" error.
-  const gameLoopRef = useRef<number | null>(null);
-  const lastMoveTimeRef = useRef<number>(0);
-
-  const isWalkable = (x: number, y: number) => {
-    if (y < 0 || y >= GYM_MAP_LAYOUT.length || x < 0 || x >= GYM_MAP_LAYOUT[0].length) {
-      return false;
-    }
-    return GYM_MAP_LAYOUT[y][x] !== TileType.Wall;
-  };
-  
-  const checkForInteraction = useCallback((x: number, y: number) => {
-      const neighbors = [[x, y - 1], [x, y + 1], [x - 1, y], [x + 1, y]];
-      let targetEquipment: Equipment | null = null;
-
-      for(const [nx, ny] of neighbors) {
-          if (ny >= 0 && ny < GYM_MAP_LAYOUT.length && nx >= 0 && nx < GYM_MAP_LAYOUT[0].length) {
-              const tile = GYM_MAP_LAYOUT[ny][nx];
-              const equipmentId = TILE_TO_EQUIPMENT_ID[tile];
-              if (equipmentId) {
-                  const equipment = equipmentList.find(e => e.id === equipmentId);
-                  if (equipment) {
-                      targetEquipment = equipment;
-                      break;
-                  }
-              }
-          }
-      }
-      setInteractionTarget(targetEquipment);
-  }, [equipmentList]);
-
-
-  const gameLoop = useCallback(() => {
-    const now = Date.now();
-    const moveCooldown = 150; // milliseconds
-
-    if (now - lastMoveTimeRef.current > moveCooldown) {
-      let moved = false;
-      setPlayerStats(prev => {
-        let { x, y } = prev.position;
-        const isRunning = keysPressed['shift'] && prev.stamina > 0;
-        const speed = 1;
-
-        if (keysPressed['w']) { y -= speed; moved = true; }
-        if (keysPressed['s']) { y += speed; moved = true; }
-        if (keysPressed['a']) { x -= speed; moved = true; }
-        if (keysPressed['d']) { x += speed; moved = true; }
-
-        if (moved && isWalkable(x, y)) {
-          lastMoveTimeRef.current = now;
-          const staminaCost = isRunning ? 2 : 0;
-          if (prev.stamina >= staminaCost) {
-              checkForInteraction(x, y);
-              return { ...prev, position: { x, y }, stamina: prev.stamina - staminaCost };
-          }
-        }
-        return prev;
-      });
-    }
-
-     // Stamina regeneration
-    setPlayerStats(prev => {
-        if (prev.stamina < 100) {
-            return { ...prev, stamina: Math.min(100, prev.stamina + 0.1) };
-        }
-        return prev;
-    });
-
-    gameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, [setPlayerStats, checkForInteraction]);
+  const isRunning = playerStats.stamina > 20;
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      keysPressed[e.key.toLowerCase()] = true;
-       if (e.key.toLowerCase() === 'e' && interactionTarget) {
-           if(!interactionTarget.name.includes('Soon')) {
-                onSelectWorkout(interactionTarget);
-           }
+    let animationFrameId: number;
+
+    const move = () => {
+      if (!target) {
+        setIsMoving(false);
+        return;
       }
-    };
-    const handleKeyUp = (e: KeyboardEvent) => { keysPressed[e.key.toLowerCase()] = false; };
+      
+      setIsMoving(true);
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+      setPlayerStats(prev => {
+        const speed = isRunning ? 4 : 2;
+        const dx = target.x - prev.position.x;
+        const dy = target.y - prev.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < speed) {
+          setTarget(null);
+          return { ...prev, position: { x: target.x, y: target.y } };
+        }
+
+        const newX = prev.position.x + (dx / distance) * speed;
+        const newY = prev.position.y + (dy / distance) * speed;
+        
+        // Update direction
+        if (Math.abs(dx) > Math.abs(dy)) {
+            setDirection(dx > 0 ? 'right' : 'left');
+        } else {
+            setDirection(dy > 0 ? 'down' : 'up');
+        }
+
+        const staminaDrain = isRunning ? 0.1 : 0.02;
+
+        return {
+          ...prev,
+          position: { x: newX, y: newY },
+          stamina: Math.max(0, prev.stamina - staminaDrain),
+        };
+      });
+      animationFrameId = requestAnimationFrame(move);
+    };
+
+    if (target && playerStats.stamina > 0) {
+      animationFrameId = requestAnimationFrame(move);
+    } else {
+      setIsMoving(false);
+    }
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [target, setPlayerStats, isRunning]);
+
+  const handleAreaClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (gameAreaRef.current) {
+      const rect = gameAreaRef.current.getBoundingClientRect();
+      setTarget({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    }
+  };
+
+  const handleSelect = (equipment: Equipment, event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation(); // Prevent game area click
+    const rect = event.currentTarget.getBoundingClientRect();
+    const gameAreaRect = gameAreaRef.current!.getBoundingClientRect();
     
-    checkForInteraction(playerStats.position.x, playerStats.position.y);
-    gameLoopRef.current = requestAnimationFrame(gameLoop);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup',handleKeyUp);
-      if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
+    const origin = {
+        x: rect.left - gameAreaRect.left + rect.width / 2,
+        y: rect.top - gameAreaRect.top + rect.height / 2,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameLoop, interactionTarget, onSelectWorkout]);
-
-  const getTileComponent = (tile: TileType, x: number, y: number) => {
-    const key = `${x}-${y}`;
-    const equipmentId = TILE_TO_EQUIPMENT_ID[tile];
-    const equipment = equipmentList.find(e => e.id === equipmentId);
-
-    if (equipment) {
-        const Icon = equipment.icon;
-        return <div key={key} className="flex items-center justify-center bg-gray-700/50"><Icon className="w-8 h-8 text-indigo-300" /></div>;
-    }
-
-    switch (tile) {
-      case TileType.Wall: return <div key={key} className="bg-gray-800 border-t border-gray-600"></div>;
-      case TileType.Floor: return <div key={key} className="bg-gray-700/50"></div>;
-      default: return <div key={key} className="bg-gray-700"></div>;
-    }
+    onSelectWorkout(equipment, origin);
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <div className="lg:col-span-1 space-y-6">
-        <AvatarCard level={playerStats.level} caloriesBurned={playerStats.caloriesBurned} stamina={Math.round(playerStats.stamina)} />
-        <StatsPanel muscleGroups={playerStats.muscleGroups} />
-        <AiCoachPanel playerStats={playerStats} />
-      </div>
-      
-      <div className="lg:col-span-3 bg-gray-800/50 p-4 rounded-lg shadow-lg border border-gray-700 aspect-[16/9] relative overflow-hidden">
-        <div className="grid" style={{
-            gridTemplateColumns: `repeat(${GYM_MAP_LAYOUT[0].length}, ${TILE_SIZE}px)`,
-            gridTemplateRows: `repeat(${GYM_MAP_LAYOUT.length}, ${TILE_SIZE}px)`,
-        }}>
-           {GYM_MAP_LAYOUT.map((row, y) => row.map((tile, x) => getTileComponent(tile, x, y)))}
+    <div className="h-full flex flex-col lg:flex-row gap-6">
+      <aside className="lg:w-1/3 xl:w-1/4 h-full overflow-y-auto pr-2">
+        <Dashboard playerStats={playerStats} />
+      </aside>
+      <section 
+        ref={gameAreaRef}
+        className="lg:w-2/3 xl:w-3/4 h-full bg-gray-800/30 rounded-lg relative border-2 border-gray-700 overflow-hidden"
+        onClick={handleAreaClick}
+        style={{
+            backgroundImage: 'radial-gradient(circle, #4a5568 1px, transparent 1px)',
+            backgroundSize: '2rem 2rem',
+        }}
+      >
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {equipmentList.map(eq => (
+            <EquipmentCard
+              key={eq.id}
+              equipment={eq}
+              onSelect={handleSelect}
+              disabled={playerStats.stamina < eq.minStamina}
+            />
+          ))}
         </div>
-         <div 
-            className="absolute bg-green-400 rounded-full w-10 h-10 border-2 border-white shadow-lg transition-all duration-150 ease-linear"
-            style={{
-                left: playerStats.position.x * TILE_SIZE + (TILE_SIZE / 2) - 20,
-                top: playerStats.position.y * TILE_SIZE + (TILE_SIZE / 2) - 20,
-            }}
+        <PlayerSprite 
+            x={playerStats.position.x}
+            y={playerStats.position.y}
+            direction={direction}
+            isMoving={isMoving}
+            isRunning={isRunning && playerStats.stamina > 0}
+            isExhausted={playerStats.stamina === 0}
         />
-        {interactionTarget && (
-             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
-                Press 'E' to use {interactionTarget.name}
-                {interactionTarget.name.includes('Soon') && <span className="text-yellow-400 text-sm"> (Coming Soon)</span>}
-            </div>
-        )}
-      </div>
+      </section>
     </div>
   );
 };

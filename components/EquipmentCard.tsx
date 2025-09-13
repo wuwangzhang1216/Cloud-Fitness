@@ -4,7 +4,7 @@ import type { Equipment } from '../types';
 
 interface EquipmentCardProps {
   equipment: Equipment;
-  onSelect: (equipment: Equipment) => void;
+  onSelect: (equipment: Equipment, event: React.MouseEvent<HTMLDivElement>) => void;
   disabled?: boolean;
 }
 
@@ -13,7 +13,7 @@ const EquipmentCard: React.FC<EquipmentCardProps> = ({ equipment, onSelect, disa
 
   return (
     <div
-      onClick={() => !disabled && onSelect(equipment)}
+      onClick={(e) => !disabled && onSelect(equipment, e)}
       className={`
         group bg-gray-800 p-5 rounded-lg border-2 border-gray-700
         transition-all duration-300 ease-in-out

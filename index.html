@@ -1,39 +1,126 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cloud Fitness Game</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      /* Custom scrollbar for a more game-like feel */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #1f2937; /* gray-800 */
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #4f46e5; /* indigo-600 */
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #6366f1; /* indigo-500 */
-      }
-    </style>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Fitness Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Exo+2:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Exo 2"', 'sans-serif'],
+            mono: ['"Roboto Mono"', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
   <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.19.0"
+  {
+    "imports": {
+      "react": "https://aistudiocdn.com/react@^19.1.1",
+      "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+      "react/": "https://aistudiocdn.com/react@^19.1.1/",
+      "@google/genai": "https://aistudiocdn.com/@google/genai@^1.19.0"
+    }
   }
-}
-</script>
+  </script>
+  <style>
+    body {
+      background-color: #111827; /* bg-gray-900 */
+    }
+    .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s cubic-bezier(0.45, 0, 0.55, 1), opacity 0.8s ease;
+        backface-visibility: hidden;
+    }
+    .gym-view-active {
+        transform: perspective(1000px) rotateY(0deg) scale(1);
+        opacity: 1;
+        z-index: 10;
+    }
+    .gym-view-inactive {
+        transform: perspective(1000px) rotateY(90deg) scale(0.9);
+        opacity: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
+    .workout-view-active {
+        transform: perspective(1000px) rotateY(0deg) scale(1);
+        opacity: 1;
+        z-index: 10;
+    }
+    .workout-view-inactive {
+        transform: perspective(1000px) rotateY(-90deg) scale(0.9);
+        opacity: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    /* Character Sprite Animations */
+    .player-sprite {
+        width: 100%;
+        height: 100%;
+        background-repeat: no-repeat;
+        image-rendering: pixelated;
+    }
+
+    .player-sprite.down { background-position-y: 0; }
+    .player-sprite.up { background-position-y: -48px; }
+    .player-sprite.left { background-position-y: -96px; }
+    .player-sprite.right { background-position-y: -144px; }
+    
+    .player-sprite.idle { animation: idle 1.5s steps(1) infinite; }
+    .player-sprite.walking { animation: walk 0.8s steps(4) infinite; }
+    .player-sprite.running { animation: run 0.6s steps(4) infinite; }
+    .player-sprite.exhausted { animation: exhausted 1.2s steps(2) infinite; }
+    
+    @keyframes idle { 0% { background-position-x: 0; } 100% { background-position-x: 0; } }
+    @keyframes walk { from { background-position-x: -48px; } to { background-position-x: -240px; } }
+    @keyframes run { from { background-position-x: -48px; } to { background-position-x: -240px; } }
+    @keyframes exhausted { from { background-position-x: -240px; } to { background-position-x: -336px; } }
+
+    /* 3D Character Effects */
+    .muscle-pulse {
+        animation: pulse-animation 0.5s ease-out;
+        box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.7); /* red-500 glow */
+        background-color: rgba(239, 68, 68, 0.5) !important;
+    }
+
+    @keyframes pulse-animation {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .sweat-particle {
+        position: absolute;
+        width: 3px;
+        height: 8px;
+        background: rgba(165, 243, 252, 0.6); /* cyan-200 */
+        border-radius: 50%;
+        opacity: 0;
+        animation: sweat-fall linear infinite;
+    }
+
+    @keyframes sweat-fall {
+        0% { transform: translateY(-10px); opacity: 0; }
+        20% { opacity: 1; }
+        100% { transform: translateY(40px); opacity: 0; }
+    }
+
+  </style>
 </head>
-  <body class="bg-gray-900 text-white">
-    <div id="root"></div>
-  </body>
+<body class="bg-gray-900">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

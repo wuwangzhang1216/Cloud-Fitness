@@ -10,7 +10,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getWorkoutTip = async (stats: PlayerStats): Promise<string> => {
   const muscleEntries = Object.entries(stats.muscleGroups);
-  muscleEntries.sort(([, a], [, b]) => a - b);
+  // FIX: Add explicit types to resolve linter error about arithmetic operations on potentially non-numeric types.
+  muscleEntries.sort(([, a]: [string, number], [, b]: [string, number]) => a - b);
   
   const strongestMuscle = muscleEntries[muscleEntries.length - 1];
   const weakestMuscle = muscleEntries[0];
